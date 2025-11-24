@@ -90,7 +90,7 @@ export function setColors<T extends HasMetadata>(
   prevMap?: ColorMap,
   key?: string
 ): ColorMap {
-  const colors = generateStageColors(stages, prevMap);
+  const colors = generateStageColors(stages, prevMap, key);
   localStorage.setItem(`${project}/colors${key ? `/${key}` : ''}`, JSON.stringify(colors));
   return colors;
 }
@@ -99,8 +99,14 @@ export const clearColors = (project: string, key?: string) => {
   localStorage.removeItem(`${project}/colors${key ? `/${key}` : ''}`);
 };
 
-export function generateStageColors<T extends HasMetadata>(sortedObjects: T[], prevMap?: ColorMap) {
-  const curColors = { ...ColorMapHex };
+export function generateStageColors<T extends HasMetadata>(
+  sortedObjects: T[], 
+  prevMap?: ColorMap,
+  key?: string
+) {
+  // Choose the right color map based on the key
+  const colorMapSource = key === 'warehouses' ? WarehouseColorMapHex : ColorMapHex;
+  const curColors = { ...colorMapSource };
   let finalMap: { [key: string]: string } = {};
 
   if (prevMap && Object.keys(prevMap).length > 0) {
@@ -114,7 +120,7 @@ export function generateStageColors<T extends HasMetadata>(sortedObjects: T[], p
     const color = parseColorAnnotation(stage);
     if (color) {
       delete curColors[color];
-      finalMap[stage?.metadata?.name || ''] = ColorMapHex[color] ?? color;
+      finalMap[stage?.metadata?.name || ''] = colorMapSource[color] ?? color;
     }
   }
   const colors = Object.values(curColors);
